@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { ToastProvider } from "@/components/states/toast";
 
 export const metadata: Metadata = { title: "AI SchoolOS", description: "The operating system for modern schools." };
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body><ToastProvider><AppShell>{children}</AppShell></ToastProvider></body></html>; }
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) { return <html lang="en"><body><ToastProvider><AuthProvider><AppShell>{children}</AppShell></AuthProvider></ToastProvider></body></html>; }

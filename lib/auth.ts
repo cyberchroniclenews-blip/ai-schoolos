@@ -1,8 +1,7 @@
 import "server-only";
 
 import { redirect } from "next/navigation";
-import { assertSupabaseServerConfig } from "@/lib/supabase/config";
-import { getAccessToken, getAuthenticatedUser } from "@/lib/supabase/server";
+import { createSupabaseServerClient, getAuthenticatedUser } from "@/lib/supabase/server";
 import type { CoreRole } from "@/types/auth";
 
 export async function requireUser() {
@@ -12,15 +11,9 @@ export async function requireUser() {
 }
 
 async function authorizeRpc(functionName: "has_school_role" | "has_school_permission", body: Record<string, unknown>) {
-  const token = await getAccessToken();
-  if (!token) return false;
-  const { url, anonKey } = assertSupabaseServerConfig();
-  const response = await fetch(`${url}/rest/v1/rpc/${functionName}`, {
-    method: "POST",
-    headers: { apikey: anonKey, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body), cache: "no-store",
-  });
-  return response.ok && (await response.json()) === true;
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc(functionName, body);
+  return !error && data === true;
 }
 
 /** Enforces a tenant-specific role on the server before a route/action proceeds. */

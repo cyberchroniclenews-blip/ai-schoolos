@@ -1,13 +1,14 @@
 import "server-only";
 
+import { createClient } from "@supabase/supabase-js";
 import { supabaseServerConfig } from "@/lib/supabase/config";
 
 /**
  * Deliberately server-only escape hatch for provisioning/administration jobs.
- * Do not import this from routes or components serving end users; RLS is bypassed.
+ * Never import this into user request paths because it bypasses RLS.
  */
-export function getSupabaseAdminHeaders() {
-  const key = supabaseServerConfig.serviceRoleKey;
-  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for server-side administration.");
-  return { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+export function createSupabaseAdminClient() {
+  const { url, serviceRoleKey } = supabaseServerConfig;
+  if (!url || !serviceRoleKey) throw new Error("SUPABASE_SERVICE_ROLE_KEY is required for server-side administration.");
+  return createClient(url, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 }

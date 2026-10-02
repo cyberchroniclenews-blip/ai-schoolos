@@ -4,7 +4,7 @@ Phase 2 establishes Supabase authentication, least-privilege RBAC, and database-
 
 ## Local setup
 
-1. Copy `.env.example` to `.env.local` and fill in your Supabase project URL and **anon** key.
+1. Copy `.env.example` to `.env.local` and fill in your Supabase project URL and **publishable** key.
 2. Install dependencies with `npm install`, then run `npm run dev`.
 3. Authenticate using an email/password user created in Supabase Auth. The app stores access and refresh tokens in secure, HTTP-only cookies.
 4. Apply the schema migration with the Supabase CLI:
@@ -18,12 +18,14 @@ Phase 2 establishes Supabase authentication, least-privilege RBAC, and database-
 
 - Enable Email/Password sign-in in **Authentication → Providers**.
 - Add local and production redirect URLs in **Authentication → URL Configuration** before enabling email confirmation or OAuth.
-- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are browser-safe. The anon key is constrained by RLS.
+- `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are browser-safe. The publishable key is constrained by RLS.
 - `SUPABASE_SERVICE_ROLE_KEY` is server-only and is not needed by the web request path. Keep it out of `.env.example` values, source control, client bundles, and `NEXT_PUBLIC_*` variables.
 
 ## Authentication and authorization
 
-`app/login/actions.ts` exchanges credentials with Supabase Auth and writes only HTTP-only, same-site session cookies. Server pages call `requireUser`; client state comes from `/api/auth/session` and exposes loading/error/authenticated states. The shell offers server-action logout.
+`@supabase/ssr` manages HTTP-only Supabase session cookies. Middleware refreshes sessions before requests, server pages call `requireUser`, and client state comes from `/api/auth/session`. The shell offers server-action logout.
+
+The session endpoint returns the signed-in user's profile, only the memberships allowed by RLS, and an active school membership. The active membership uses a validated `ai-schoolos-active-school-id` cookie when one is present; otherwise it deterministically selects the first school membership. A global Super Admin without a school membership has no active school.
 
 Roles are `super_admin`, `school_admin` (Principal), `teacher`, `parent`, and `student`. Roles map to granular `resource:action` permissions through `role_permissions`. Add permissions and assignments through a trusted server-side provisioning workflow; do not grant them from a browser client.
 

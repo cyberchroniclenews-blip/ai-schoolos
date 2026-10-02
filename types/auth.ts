@@ -34,11 +34,11 @@ export interface Permission {
 
 export interface Membership {
   id: string;
-  schoolId: string;
+  schoolId: string | null;
   userId: string;
   roleId: string;
   role: Role;
-  school: School;
+  school: School | null;
   createdAt: string;
   updatedAt: string;
 }

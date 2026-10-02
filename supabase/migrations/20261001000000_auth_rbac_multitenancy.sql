@@ -34,10 +34,18 @@ create table public.school_memberships (
   created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
   unique nulls not distinct (school_id, user_id, role_id)
 );
+create or replace function public.set_updated_at() returns trigger language plpgsql set search_path = public as $$
+begin new.updated_at = now(); return new; end; $$;
+create trigger set_schools_updated_at before update on public.schools for each row execute procedure public.set_updated_at();
+create trigger set_profiles_updated_at before update on public.profiles for each row execute procedure public.set_updated_at();
+create trigger set_school_memberships_updated_at before update on public.school_memberships for each row execute procedure public.set_updated_at();
 create or replace function public.enforce_membership_tenant() returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  if new.school_id is null and not exists (select 1 from public.roles where id = new.role_id and is_global_role) then
-    raise exception 'Only global roles can have a null school_id';
+  if not exists (
+    select 1 from public.roles
+    where id = new.role_id and ((new.school_id is null and is_global_role) or (new.school_id is not null and not is_global_role))
+  ) then
+    raise exception 'Global roles require a null school_id and school roles require a school_id';
   end if;
   return new;
 end; $$;

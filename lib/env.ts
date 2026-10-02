@@ -2,7 +2,7 @@
 export const env = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  supabasePublishableKey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 } as const;
 
-export const isSupabaseConfigured = Boolean(env.supabaseUrl && env.supabaseAnonKey);
+export const isSupabaseConfigured = Boolean(env.supabaseUrl && env.supabasePublishableKey);
